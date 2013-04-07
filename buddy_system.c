@@ -80,3 +80,17 @@ void deallocate( pointer block, int size )
           }
      }
 }
+
+int main(int argc, char const *argv[])
+{
+    pointer p1;
+    freelists[3] = malloc(4 * sizeof(int));
+    freelists[2] = malloc( sizeof(int) );
+    freelists[1] = malloc( sizeof(int) );
+    freelists[0] = malloc( sizeof(int) );
+
+    int d = sizeof(int) / 2;
+    printf("Requesting a block of size %d\n", d);
+    p1 = allocate( d );
+    printf("%p\n", p1);
+}
