@@ -1,8 +1,8 @@
 /* Copyright (c) 2007, Sandia National Laboratories */
 
-#include <linux/module.h>
-#include <linux/slab.h>
-#include <linux/log2.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #define BITS_PER_LONG 32
 #define BITS_PER_BYTE 8
@@ -10,21 +10,19 @@
 #define BITS_TO_LONGS(nr) DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
 
 #include "buddy.h"
-#define BUG_ON assert
+#define BUG_ON ASSERT
 //#include <lwk/bootmem.h>
 
 
-static void
-__set_bit(int id, struct buddy_mempool *mp)
+static void __set_bit(unsigned long id, struct buddy_mempool *mp)
 {
-	mp->tag_bits |= 1 << id;
+	*mp->tag_bits |= 1<<id;
 }
 
 
-static void
-__clear_bit(int id, struct buddy_mempool *mp)
+static void __clear_bit(unsigned long id, struct buddy_mempool *mp)
 {
-	mp->tag_bits &= ~(1 << id);
+	*mp->tag_bits &= ~(1 << id);
 }
 
 
@@ -57,7 +55,7 @@ block_to_id(struct buddy_mempool *mp, struct block *block)
 static void
 mark_available(struct buddy_mempool *mp, struct block *block)
 {
-	__set_bit(block_to_id(mp, block), mp->tag_bits);
+	__set_bit(block_to_id(mp, block), mp);
 }
 
 
@@ -67,7 +65,7 @@ mark_available(struct buddy_mempool *mp, struct block *block)
 static void
 mark_allocated(struct buddy_mempool *mp, struct block *block)
 {
-	__clear_bit(block_to_id(mp, block), mp->tag_bits);
+	__clear_bit(block_to_id(mp, block), mp);
 }
 
 
@@ -77,7 +75,7 @@ mark_allocated(struct buddy_mempool *mp, struct block *block)
 static int
 is_available(struct buddy_mempool *mp, struct block *block)
 {
-	return test_bit(block_to_id(mp, block), mp->tag_bits);
+	return test_bit(block_to_id(mp, block), mp);
 }
 
 
@@ -156,9 +154,8 @@ buddy_init(
 
 	/* Allocate a bitmap with 1 bit per minimum-sized block */
 	mp->num_blocks = (1UL << pool_order) / (1UL << min_order);
-	mp->tag_bits   = kmalloc(
-				 BITS_TO_LONGS(mp->num_blocks) * sizeof(long), GFP_KERNEL
-	                 );
+	mp->tag_bits   = malloc(
+				 BITS_TO_LONGS(mp->num_blocks) * sizeof(long));
 
 	// printk("Allocating %lu bytes for tag array\n", BITS_TO_LONGS(mp->num_blocks) * sizeof(long));
 	printf("Allocating %lu bytes for tag array\n", BITS_TO_LONGS(mp->num_blocks) * sizeof(long));
@@ -171,9 +168,9 @@ buddy_init(
 
 
 void buddy_deinit(struct buddy_mempool * mp) {
-    kfree(mp->avail);
-    kfree(mp->tag_bits);
-    kfree(mp);
+    free(mp->avail);
+    free(mp->tag_bits);
+    free(mp);
 
     return;
 }
@@ -295,7 +292,7 @@ buddy_dump_mempool(struct buddy_mempool *mp)
 	// printk(KERN_DEBUG "DUMP OF BUDDY MEMORY POOL:\n");
 	printf("DUMP OF BUDDY MEMORY POOL:\n");
 	// printk(KERN_DEBUG "  Pool Order=%lu, Min Order=%lu\n", mp->pool_order, mp->min_order);
-	printf("Pool Order=%lu, Min Order=%lu\n", mp->pool_order, mp->min_order\n);
+	printf("Pool Order=%lu, Min Order=%lu\n", mp->pool_order, mp->min_order);
 
 	for (i = mp->min_order; i <= mp->pool_order; i++) {
 
