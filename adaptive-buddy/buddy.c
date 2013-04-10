@@ -3,11 +3,39 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/log2.h>
+
+#define BITS_PER_LONG 32
+#define BITS_PER_BYTE 8
+#define DIV_ROUND_UP(x,y) (((x) + ((y) - 1)) / (y))
+#define BITS_TO_LONGS(nr) DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
+
 #include "buddy.h"
+#define BUG_ON assert
 //#include <lwk/bootmem.h>
 
 
+static void
+__set_bit(int id, struct buddy_mempool *mp)
+{
+	mp->tag_bits |= 1 << id;
+}
 
+
+static void
+__clear_bit(int id, struct buddy_mempool *mp)
+{
+	mp->tag_bits &= ~(1 << id);
+}
+
+
+static inline void bitmap_zero(unsigned long *dst, int nbits)
+{
+	int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+	if (nbits <= BITS_PER_LONG)
+		*dst = 0UL;
+	else
+		memset(dst, 0, len);
+}
 
 /**
  * Converts a block address to its block index in the specified buddy allocator.
@@ -111,14 +139,16 @@ buddy_init(
 	if (min_order > pool_order)
 		return NULL;
 
-	mp = kmalloc(sizeof(struct buddy_mempool), GFP_KERNEL);
+	// mp = kmalloc(sizeof(struct buddy_mempool), GFP_KERNEL);
+	mp = (struct buddy_mempool *) malloc(sizeof(struct buddy_mempool));
 	
 	mp->base_addr  = base_addr;
 	mp->pool_order = pool_order;
 	mp->min_order  = min_order;
 
 	/* Allocate a list for every order up to the maximum allowed order */
-	mp->avail = kmalloc((pool_order + 1) * sizeof(struct list_head), GFP_KERNEL);
+	// mp->avail = kmalloc((pool_order + 1) * sizeof(struct list_head), GFP_KERNEL);
+	mp->avail = malloc((pool_order + 1) * sizeof(struct list_head));
 
 	/* Initially all lists are empty */
 	for (i = 0; i <= pool_order; i++)
@@ -130,7 +160,8 @@ buddy_init(
 				 BITS_TO_LONGS(mp->num_blocks) * sizeof(long), GFP_KERNEL
 	                 );
 
-	printk("Allocating %lu bytes for tag array\n", BITS_TO_LONGS(mp->num_blocks) * sizeof(long));
+	// printk("Allocating %lu bytes for tag array\n", BITS_TO_LONGS(mp->num_blocks) * sizeof(long));
+	printf("Allocating %lu bytes for tag array\n", BITS_TO_LONGS(mp->num_blocks) * sizeof(long));
 
 	/* Initially mark all minimum-sized blocks as allocated */
 	bitmap_zero(mp->tag_bits, mp->num_blocks);
@@ -261,9 +292,10 @@ buddy_dump_mempool(struct buddy_mempool *mp)
 	unsigned long num_blocks;
 	struct list_head *entry;
 
-	printk(KERN_DEBUG "DUMP OF BUDDY MEMORY POOL:\n");
-	printk(KERN_DEBUG "  Pool Order=%lu, Min Order=%lu\n", 
-	       mp->pool_order, mp->min_order);
+	// printk(KERN_DEBUG "DUMP OF BUDDY MEMORY POOL:\n");
+	printf("DUMP OF BUDDY MEMORY POOL:\n");
+	// printk(KERN_DEBUG "  Pool Order=%lu, Min Order=%lu\n", mp->pool_order, mp->min_order);
+	printf("Pool Order=%lu, Min Order=%lu\n", mp->pool_order, mp->min_order\n);
 
 	for (i = mp->min_order; i <= mp->pool_order; i++) {
 
@@ -272,7 +304,8 @@ buddy_dump_mempool(struct buddy_mempool *mp)
 		list_for_each(entry, &mp->avail[i])
 			++num_blocks;
 
-		printk(KERN_DEBUG "  order %2lu: %lu free blocks\n", i, num_blocks);
+		// printk(KERN_DEBUG "  order %2lu: %lu free blocks\n", i, num_blocks);
+		printf("Order %2lu: %lu free blocks\n", i, num_blocks);			
 	}
 }
 
