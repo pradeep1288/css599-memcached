@@ -175,13 +175,15 @@ find_buddy(struct buddy_mempool *mp, struct block *block, unsigned long order)
  */
 struct buddy_mempool *
 buddy_init(
-	unsigned long base_addr,
 	unsigned long pool_order,
 	unsigned long min_order
 )
 {
 	struct buddy_mempool *mp;
 	unsigned long i;
+
+	void* base_addr = malloc((1 << pool_order) * sizeof(uint8_t);
+	base_addr = (unsigned long)base_addr;
 
 	/* Smallest block size must be big enough to hold a block structure */
 	if ((1UL << min_order) < sizeof(struct block))

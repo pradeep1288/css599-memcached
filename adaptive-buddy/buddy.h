@@ -41,7 +41,6 @@ struct block {
 
 extern struct buddy_mempool *
 buddy_init(
-	unsigned long base_addr,
 	unsigned long pool_order,
 	unsigned long min_order
 );
