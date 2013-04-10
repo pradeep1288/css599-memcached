@@ -51,7 +51,7 @@ block_to_id(struct buddy_mempool *mp, struct block *block)
 {
 	unsigned long block_id =
 		((unsigned long)block - mp->base_addr) >> mp->min_order;
-	BUG_ON(block_id >= mp->num_blocks);
+	//BUG_ON(block_id >= mp->num_blocks);
 	return block_id;
 }
 
@@ -95,7 +95,7 @@ find_buddy(struct buddy_mempool *mp, struct block *block, unsigned long order)
 	unsigned long _block;
 	unsigned long _buddy;
 
-	BUG_ON((unsigned long)block < mp->base_addr);
+	//BUG_ON((unsigned long)block < mp->base_addr);
 
 	/* Fixup block address to be zero-relative */
 	_block = (unsigned long)block - mp->base_addr;
@@ -202,8 +202,8 @@ buddy_alloc(struct buddy_mempool *mp, unsigned long order)
 	struct block *block;
 	struct block *buddy_block;
 
-	BUG_ON(mp == NULL);
-	BUG_ON(order > mp->pool_order);
+	//BUG_ON(mp == NULL);
+	//BUG_ON(order > mp->pool_order);
 
 	/* Fixup requested order to be at least the minimum supported */
 	if (order < mp->min_order)
@@ -249,8 +249,8 @@ buddy_free(
 )
 {
     struct block * block  = NULL;
-	BUG_ON(mp == NULL);
-	BUG_ON(order > mp->pool_order);
+	//BUG_ON(mp == NULL);
+	//BUG_ON(order > mp->pool_order);
 
 	/* Fixup requested order to be at least the minimum supported */
 	if (order < mp->min_order)
@@ -258,7 +258,7 @@ buddy_free(
 
 	/* Overlay block structure on the memory block being freed */
 	block = (struct block *) addr;
-	BUG_ON(is_available(mp, block));
+	//BUG_ON(is_available(mp, block));
 
 	/* Coalesce as much as possible with adjacent free buddy blocks */
 	while (order < mp->pool_order) {
