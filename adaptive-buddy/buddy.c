@@ -1,5 +1,3 @@
-/* Copyright (c) 2007, Sandia National Laboratories */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,13 +9,61 @@
 
 #include "buddy.h"
 #define BUG_ON ASSERT
-//#include <lwk/bootmem.h>
+
+
+unsigned int
+ones32(register unsigned int x)
+{
+        /* 32-bit recursive reduction using SWAR...
+	   but first step is mapping 2-bit values
+	   into sum of 2 1-bit values in sneaky way
+	*/
+        x -= ((x >> 1) & 0x55555555);
+        x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
+        x = (((x >> 4) + x) & 0x0f0f0f0f);
+        x += (x >> 8);
+        x += (x >> 16);
+        return(x & 0x0000003f);
+}
+
+
+unsigned int
+ilog2(register unsigned int x)
+{
+	x |= (x >> 1);
+	x |= (x >> 2);
+	x |= (x >> 4);
+	x |= (x >> 8);
+	x |= (x >> 16);
+	#ifdef	LOG0UNDEFINED
+        return(ones32(x) - 1);
+	#else
+		return(ones32(x >> 1));
+	#endif
+}
+
+
+static int
+roundup_pow_of_two(int x)
+{
+    if (x < 0)
+        return 0;
+    --x;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    return x+1;
+}
+
 
 static int
 test_bit(unsigned long id, struct buddy_mempool *mp)
 {
 	return *mp->tag_bits & (1 << id);
 }
+
 
 static void 
 __set_bit(unsigned long id, struct buddy_mempool *mp)
@@ -33,7 +79,8 @@ __clear_bit(unsigned long id, struct buddy_mempool *mp)
 }
 
 
-static inline void bitmap_zero(unsigned long *dst, int nbits)
+static void 
+bitmap_zero(unsigned long *dst, int nbits)
 {
 	int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
 	if (nbits <= BITS_PER_LONG)
