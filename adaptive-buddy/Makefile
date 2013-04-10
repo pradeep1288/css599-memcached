@@ -3,9 +3,9 @@ CC=gcc
 CFLAGS=-Wall -O3
 
 
-all: test
+all: buddy-test
 
-buddy-test: test.o buddy-system.o
+buddy-test: test.o buddy.o
 	$(CC) $(CFLAGS) -o $@ $? -lm
 
 clean:	
