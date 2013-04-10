@@ -3,7 +3,7 @@
 #ifndef _LWK_BUDDY_H
 #define _LWK_BUDDY_H
 
-#include <linux/list.h>
+#include "list.h"
 
 /**
  * This structure stores the state of a buddy system memory allocator object.
