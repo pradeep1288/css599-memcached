@@ -13,14 +13,21 @@
 #define BUG_ON ASSERT
 //#include <lwk/bootmem.h>
 
+static int
+test_bit(unsigned long id, struct buddy_mempool *mp)
+{
+	return *mp->tag_bits & (1 << id);
+}
 
-static void __set_bit(unsigned long id, struct buddy_mempool *mp)
+static void 
+__set_bit(unsigned long id, struct buddy_mempool *mp)
 {
 	*mp->tag_bits |= 1<<id;
 }
 
 
-static void __clear_bit(unsigned long id, struct buddy_mempool *mp)
+static void 
+__clear_bit(unsigned long id, struct buddy_mempool *mp)
 {
 	*mp->tag_bits &= ~(1 << id);
 }
