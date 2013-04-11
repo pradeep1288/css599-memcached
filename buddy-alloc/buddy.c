@@ -3,8 +3,8 @@
 #include <string.h>
 #include "buddy.h"
 
-static void *mem_base = NULL;
-static freelist_t *freelistObject;
+static void *mem_base;
+static freelist_t *freelist_object;
 
 void buddy_init() {
 
@@ -26,23 +26,24 @@ void buddy_init() {
     // Initialize the freelist object and the array. 
     // The arrays' top most index (levels) should point to the 
     // entire chunk of memory
-    freelistObject = (freelist_t *) malloc (sizeof(freelist_t));
-    freelistObject->freelist = malloc(levels * sizeof(void *));
-    freelistObject->freelist[levels] = mem_base;
+    freelist_object = (freelist_t *) malloc (sizeof(freelist_t));
+    freelist_object->freelist = malloc(levels * sizeof(void *));
+    freelist_object->freelist[levels] = mem_base;
 }
 
 void* buddy_alloc(size_t size) {
-
+    void* allocated_object;
+    return allocated_object;
 }
 
 void buddy_free(void *ptr, size_t size) {
-    
+
 }
 
 int main(int argc, char const *argv[]) {
 
     buddy_init();
     buddy_alloc(9);
-    buddy_free(9);
+    // buddy_free(9);
     return 0;
 }
