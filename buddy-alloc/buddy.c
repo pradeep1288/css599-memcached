@@ -37,8 +37,8 @@ int get_next_power_of_2(int size) {
 void buddy_init() {
 
     int levels = 13;
-    int mem_base_size = 1<<levels;
-    int i = 0;
+    int mem_base_size = 1 << levels;
+    int i;
 
     // Hard code the maximum block of memory for now
     mem_base = malloc(mem_base_size);
@@ -71,13 +71,25 @@ void buddy_init() {
     // Initialize the other free list levels using the list_init_link method.
     for ( i = 0; i < levels; ++i) {
         //Invoke the list init method on freelist_object->freelist[i]
+        list_init_link(freelist_object->freelist[i]);
     }
 }
+
+
+void buddy_split(void *ptr, int level) {
+
+    item* buddy_block;
+    --level;
+    buddy_block = ptr + (1 << level);
+    buddy_block->level = level;
+    list_add(&buddy_block->next, &freelist_object->freelist[j]);
+}
+
 
 void* buddy_alloc(size_t size) {
     
     // The object to return
-    void* allocated_object;
+    void* allocated_block;
     int next_power_of_2 = 0;
     int calculated_level = 0;
     int j = 0;
@@ -101,33 +113,56 @@ void* buddy_alloc(size_t size) {
         if (list_empty(list))
             continue;
 
-        allocated_object = list_entry(list->next);
+        allocated_block = list_entry(list->next);
 
         /* Trim if a higher order block than necessary was allocated */
-        while (j > calculated_level) {
-            
-            buddy_split(allocated_object);
+        while (j > calculated_level)
+            allocated_block = buddy_split(allocated_block, j);
 
-            // TO-DO : Add it's buddy to the corresponding level in the freelist array
-
-        }
-
-        return allocated_object;
+        return allocated_block;
     }
 
     // Return the object
     return NULL;
 }
 
+
+
+
 void buddy_free(void *ptr, size_t size) {
 
-    //Check if there are any free blocks in the freelist level corresponding to size.
+    
+    int level;
 
-    // If yes, check if it is the current block's buddy in the freelist level 
-    // corresponding to size. If there is, invoke buddy_merge and merge the two.
+    block_to_be_freed = (item *)ptr;
 
-    // Else, add it to the freelist level corresponding to size.
+    level = block_to_be_freed->level;
+
+    while (level < freelist_object->max_level) {
+
+        //Check if there are any free blocks in the freelist level corresponding to size.
+        item* buddy = find_buddy(block_to_be_freed);
+
+        if(buddy == NULL)
+            break;
+
+        // If yes, check if it is the current block's buddy in the freelist level 
+        // corresponding to size. If there is, invoke buddy_merge and merge the two.
+        list_del(&buddy->link);
+        if (buddy < block_to_be_freed)
+            block_to_be_freed = buddy;
+        ++level;
+        block_to_be_freed->level = level;
+    }
+
+    // No buddy found, so add the block to be freed to its corresponding free list level.
+    block_to_be_freed->level = level;
+
+    list_add(&block_to_be_freed->link, &freelist_object->freelist[level];);
+
 }
+
+
 
 int main(int argc, char const *argv[]) {
 
