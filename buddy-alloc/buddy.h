@@ -6,6 +6,14 @@ typedef struct {
 	void** freelist;
 }freelist_t;
 
+
+typedef struct _stritem {
+    struct _stritem *next;
+    int             nbytes;     /* size of data */
+    uint8_t         level;		/* which freelist level we're in */
+	void *data;
+} item;
+
 /* 	To initialize the chunk of memory. Takes in the max size parameter.
 	It should init the free list structure. memset.*/
 
