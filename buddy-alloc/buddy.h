@@ -31,4 +31,4 @@ to a bigger chunk.*/
 void* buddy_merge(void *ptr);
 
 /*	Splits a big chunk into smaller blocks.*/
-void* buddy_split(void *ptr);
+void buddy_split(void *ptr, int level);
