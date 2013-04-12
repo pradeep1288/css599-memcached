@@ -9,7 +9,6 @@ static freelist_t *freelist_object;
 
 /* Utility functions */
 
-
 int get_level(int x) {
 
     int count = 0;
@@ -31,6 +30,7 @@ int get_next_power_of_2(int size) {
     size |= size >> 16;
     return size + 1;
 }
+
 
 /* Buddy allocation functions */
 
@@ -104,7 +104,7 @@ void* buddy_alloc(size_t size) {
         allocated_object = list_entry(list->next);
 
         /* Trim if a higher order block than necessary was allocated */
-        while (j > order) {
+        while (j > calculated_level) {
             
             buddy_split(allocated_object);
 
@@ -131,8 +131,9 @@ void buddy_free(void *ptr, size_t size) {
 
 int main(int argc, char const *argv[]) {
 
+    void* pointer;
     buddy_init();
-    buddy_alloc(9);
-    // buddy_free(9);
+    pointer = buddy_alloc(9);
+    buddy_free(pointer, 9);
     return 0;
 }
