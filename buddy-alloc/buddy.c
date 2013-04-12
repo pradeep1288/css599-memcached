@@ -2,14 +2,43 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
+#include "list.h"
 
 static void *mem_base;
 static freelist_t *freelist_object;
+
+/* Utility functions */
+
+
+int get_level(int x) {
+
+    int count = 0;
+    while(x) {
+        x = x >> 1;
+        count++;
+    }
+    return count;
+}
+
+
+int get_next_power_of_2(int size) {
+
+    --size;
+    size |= size >> 1;
+    size |= size >> 2;
+    size |= size >> 4;
+    size |= size >> 8;
+    size |= size >> 16;
+    return size + 1;
+}
+
+/* Buddy allocation functions */
 
 void buddy_init() {
 
     int levels = 13;
     int mem_base_size = 1<<levels;
+    int i = 0;
 
     // Hard code the maximum block of memory for now
     mem_base = malloc(mem_base_size);
@@ -26,30 +55,68 @@ void buddy_init() {
     // Initialize the freelist object and the array. 
     // The arrays' top most index (levels) should point to the 
     // entire chunk of memory
+
+    // Allocate memory for freelist_t struct
     freelist_object = (freelist_t *) malloc (sizeof(freelist_t));
+
+    // Assign the maximum level to freelist_t objects max_level member
+    freelist_object->max_level = levels;
+
+    // Allocate memory for freelist array within this struct
     freelist_object->freelist = malloc(levels * sizeof(void *));
+
+    // This should ideally be done with a list utility's insert node function
     freelist_object->freelist[levels] = mem_base;
+
+    // Initialize the other free list levels using the list_init_link method.
+    for ( i = 0; i < levels; ++i) {
+        //Invoke the list init method on freelist_object->freelist[i]
+    }
 }
 
 void* buddy_alloc(size_t size) {
     
     // The object to return
     void* allocated_object;
+    int next_power_of_2 = 0;
+    int calculated_level = 0;
+    int j = 0;
+    struct list_head *list;
 
     //Calculate the power of 2 big enough to hold 'size'
+    next_power_of_2 = get_next_power_of_2(size);
+
+    calculated_level = get_level(next_power_of_2);
+
+    assert(calculated_level > freelist_object->max_level);
 
     // Check the free-list if there are any free blocks for that level in the freelist array
-
     // If not, find a block in the upper level.
-
     // Split the block
-
     // Assign the block to the return object.
 
-    // Add it's buddy to the corresponding level in the freelist array
+    for (j = calculated_level; j <= freelist_object->max_level; j++) {
+
+        list = &freelist_object->freelist[j];
+        if (list_empty(list))
+            continue;
+
+        allocated_object = list_entry(list->next);
+
+        /* Trim if a higher order block than necessary was allocated */
+        while (j > order) {
+            
+            buddy_split(allocated_object);
+
+            // TO-DO : Add it's buddy to the corresponding level in the freelist array
+
+        }
+
+        return allocated_object;
+    }
 
     // Return the object
-    return allocated_object;
+    return NULL;
 }
 
 void buddy_free(void *ptr, size_t size) {
