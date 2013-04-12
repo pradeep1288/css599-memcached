@@ -19,7 +19,7 @@ void buddy_free(void *ptr, size_t size);
 
 /* 	Invoked by buddy_free or buddy_alloc. Combines blocks of memory 
 to a bigger chunk.*/
-void buddy_merge();
+void* buddy_merge(void *ptr);
 
 /*	Splits a big chunk into smaller blocks.*/
-void buddy_split();
+void* buddy_split(void *ptr);
