@@ -32,12 +32,34 @@ void buddy_init() {
 }
 
 void* buddy_alloc(size_t size) {
+    
+    // The object to return
     void* allocated_object;
+
+    //Calculate the power of 2 big enough to hold 'size'
+
+    // Check the free-list if there are any free blocks for that level in the freelist array
+
+    // If not, find a block in the upper level.
+
+    // Split the block
+
+    // Assign the block to the return object.
+
+    // Add it's buddy to the corresponding level in the freelist array
+
+    // Return the object
     return allocated_object;
 }
 
 void buddy_free(void *ptr, size_t size) {
 
+    //Check if there are any free blocks in the freelist level corresponding to size.
+
+    // If yes, check if it is the current block's buddy in the freelist level 
+    // corresponding to size. If there is, invoke buddy_merge and merge the two.
+
+    // Else, add it to the freelist level corresponding to size.
 }
 
 int main(int argc, char const *argv[]) {
