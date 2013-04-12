@@ -2,6 +2,7 @@
 	blocks in each of the levels of the buddy allocation system*/
 
 typedef struct {
+	int max_level;
 	void** freelist;
 }freelist_t;
 
