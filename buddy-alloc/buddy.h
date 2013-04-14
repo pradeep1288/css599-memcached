@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
