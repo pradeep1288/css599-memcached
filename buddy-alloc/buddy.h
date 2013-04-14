@@ -4,6 +4,8 @@
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
 
+#define MAX_LEVELS 13
+
 typedef struct {
 	int max_level;
 	void** freelist;

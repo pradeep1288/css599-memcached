@@ -72,7 +72,7 @@ void* find_buddy(void* ptr)
 
 void buddy_init() {
 
-    int levels = 13;
+    int levels = MAX_LEVELS;
     int mem_base_size = 1 << levels;
     int i;
 
