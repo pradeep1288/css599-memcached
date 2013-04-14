@@ -3,12 +3,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
-#include "list.h"
 
 static void *mem_base;
 static freelist_t *freelist_object;
 
 /* Utility functions */
+
+void print_the_memory_layout() {
+
+    int i=0;
+    item *iterator;
+    while(i <= freelist_object->max_level) {
+        if(freelist_object->freelist[i] == NULL)
+            printf("Blocks at level - %d : 0\n", i);
+        else {
+            printf("Blocks at level - %d : ", i);
+            iterator = ((item *)freelist_object->freelist[i]);
+            printf("%p ", iterator);
+            while(iterator->next != NULL) 
+                iterator = iterator->next;
+            printf("\n");
+        }
+        ++i;   
+    }
+}
 
 int get_level(int x) {
 
@@ -78,8 +96,7 @@ void buddy_init() {
 
 void* buddy_alloc(size_t size) {
     
-    // The object to return
-    void* allocated_block;
+    void* allocated_block;                  // The object to return
     void* available_block;
     int next_power_of_2 = 0;
     int calculated_level = 0;
@@ -92,8 +109,8 @@ void* buddy_alloc(size_t size) {
 
     calculated_level = get_level(next_power_of_2);
 
-    printf("Calculated Level : %d\n", calculated_level);
-    printf("freelist_object->max_level : %d\n", freelist_object->max_level);
+    /*printf("Calculated Level : %d\n", calculated_level);
+    printf("freelist_object->max_level : %d\n", freelist_object->max_level);*/
 
     assert(calculated_level < freelist_object->max_level);
 
@@ -108,13 +125,13 @@ void* buddy_alloc(size_t size) {
         if (list == NULL)
             continue;
 
-        printf("List : %p\n", list);
+        /*printf("List : %p\n", list);*/
         new_head = ((item *)list)->next;
         available_block = (void *)list;
-        printf("available_block : %p\n", available_block);
+        /*printf("available_block : %p\n", available_block);*/
 
         /* Trim if a higher order block than necessary was allocated */
-        printf("J : %d\n", j);
+        /*printf("J : %d\n", j);*/
         while (j > calculated_level) {
 
             /* Perform the splitting iteratively */
@@ -122,19 +139,23 @@ void* buddy_alloc(size_t size) {
             allocated_block = (item *)((unsigned long)available_block + (1UL << j));
             ((item *)allocated_block)->level = j;
 
-            if(freelist_object->freelist[j] == NULL)
+            /* Check if there is already free block of that level */
+            /* If no, make this the first one */
+            if(freelist_object->freelist[j] == NULL) {
                 freelist_object->freelist[j] = allocated_block;
+            }
 
+            /* Else get the first one, link it to this block and make the block the first in that level */
             else {
                 ((item *)allocated_block)->next = freelist_object->freelist[j];
                 freelist_object->freelist[j] = allocated_block;
             }
         }
 
+        // Return the object
         return allocated_block;
     }
 
-    // Return the object
     return NULL;
 }
 
@@ -178,20 +199,17 @@ void* buddy_alloc(size_t size) {
 
 int main(int argc, char const *argv[]) {
 
-    void* pointer;
-    int i = 0;
+    void *pointer_one, *pointer_two;
     buddy_init();
 
-    // Testing the free list
-    for (i = 0; i <= 13; ++i)
-        printf("%p\n", freelist_object->freelist[i]);
-
-    pointer = buddy_alloc(19);
-    printf("Block allotted : %p\n", pointer);
+    pointer_one = buddy_alloc(19);
+    pointer_two = buddy_alloc(9);
+    /*printf("Block allotted : %p\n", pointer_one);
+    printf("Block allotted : %p\n", pointer_two);*/
     // buddy_free(pointer, 9);
-
-    // Testing the free list
+    print_the_memory_layout();
+    /*// Testing the free list
     for (i = 0; i <= 13; ++i)
-        printf("%p\n", freelist_object->freelist[i]);
+        printf("%p\n", freelist_object->freelist[i]);*/
     return 0;
 }
