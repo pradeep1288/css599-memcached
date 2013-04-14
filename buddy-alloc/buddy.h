@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
 
@@ -29,6 +31,3 @@ void buddy_free(void *ptr, size_t size);
 /* 	Invoked by buddy_free or buddy_alloc. Combines blocks of memory 
 to a bigger chunk.*/
 void* buddy_merge(void *ptr);
-
-/*	Splits a big chunk into smaller blocks.*/
-void buddy_split(void *ptr, int level);
