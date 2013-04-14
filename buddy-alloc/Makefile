@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -O3 -c -g
+CFLAGS=-Wall -O3 -c -g -O0 -fno-inline
 
 all: buddy-alloc
 
