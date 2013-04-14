@@ -50,6 +50,23 @@ int get_next_power_of_2(int size) {
     return size;
 }
 
+void* find_buddy(void* ptr)
+{
+    /*void *buddy, *block;*/
+    unsigned long buddy, block;
+
+    int level = ((item*)ptr)->level;
+
+    printf("Freeing request for a block of level %d\n", level);
+    /* Fixup block address to be zero-relative */
+    block = ptr - mem_base;
+
+    /* Calculate buddy in zero-relative space */
+    buddy = block ^ (1UL << level);
+
+    /* Return the buddy's address */
+    return (void *)(buddy + mem_base);
+}
 
 /* Buddy allocation functions */
 
@@ -105,13 +122,11 @@ void* buddy_alloc(size_t size) {
     item *new_head;
 
     printf("Allocation request for %d\n", (int)size);
+
     //Calculate the power of 2 big enough to hold 'size'
     next_power_of_2 = get_next_power_of_2(size);
 
     calculated_level = get_level(next_power_of_2);
-
-    /*printf("Calculated Level : %d\n", calculated_level);
-    printf("freelist_object->max_level : %d\n", freelist_object->max_level);*/
 
     assert(calculated_level < freelist_object->max_level);
 
@@ -123,17 +138,14 @@ void* buddy_alloc(size_t size) {
     for (j = calculated_level; j <= freelist_object->max_level; j++) {
 
         list = freelist_object->freelist[j];
-        if (list == NULL) {
-            /*printf("Finding another block big enough to hold the request\n");*/
+        if (list == NULL)
             continue;
-        }
-            
 
-        /*printf("List : %p\n", list);*/
-        
         available_block = (void *)list;
+
         /* Detach it from it's current position in the free list array */
         new_head = ((item *)list)->next;
+
         if(new_head == NULL)
             freelist_object->freelist[j] = NULL;
         else
@@ -144,11 +156,8 @@ void* buddy_alloc(size_t size) {
             return NULL;
         }
         printf("Big enough block %p found at level %d\n", available_block, j);
-        /*printf("available_block : %p\n", available_block);*/
 
         /* Trim if a higher order block than necessary was allocated */
-        /*printf("j : %d\n", j);
-        printf("calculated_level : %d\n", calculated_level);*/
         allocated_block = available_block;
 
         while (j > calculated_level) {
@@ -160,13 +169,12 @@ void* buddy_alloc(size_t size) {
             available_block = (item *)((unsigned long)available_block + (1UL << j));
             ((item *)available_block)->level = j;
             ((item *)allocated_block)->level = j;
-            printf("into %p and %p\n", available_block, allocated_block);
+            printf("into %p and %p\n", allocated_block, available_block);
 
             /* Check if there is already free block of that level */
             /* If no, make this the first one */
-            if(freelist_object->freelist[j] == NULL) {
+            if(freelist_object->freelist[j] == NULL)
                 freelist_object->freelist[j] = allocated_block;
-            }
 
             /* Else get the first one, link it to this block and make the block the first in that level */
             else {
@@ -187,38 +195,57 @@ void* buddy_alloc(size_t size) {
 
 
 
-/*void buddy_free(void *ptr, size_t size) {
+void buddy_free(void *ptr) {
 
     
-    int level;
-
-    block_to_be_freed = (item *)ptr;
+    int level, appropriate_level;
+    item* block_to_be_freed = (item *)ptr;
 
     level = block_to_be_freed->level;
 
     while (level < freelist_object->max_level) {
 
-        //Check if there are any free blocks in the freelist level corresponding to size.
+        // Find the address of the buddy corresponding to this object to be freed
         item* buddy = find_buddy(block_to_be_freed);
 
-        if(buddy == NULL)
+        if(buddy == NULL) {
+            // Not sure if this check has to be in place. We will always find a buddy, free or not. Right?
+            printf("No buddy found\n");
             break;
+        }
+        printf("Buddy %p found\n", buddy);
 
-        // If yes, check if it is the current block's buddy in the freelist level 
-        // corresponding to size. If there is, invoke buddy_merge and merge the two.
-        list_del(&buddy->link);
+        // Check if it is in the free list already. If yes, merge them.
+        // TO-DO
+
+        // Else add the block to be freed in the appropriate level in the freelist.
+        appropriate_level = ((item *)block_to_be_freed)->level;
+
+        if(freelist_object->freelist[appropriate_level] == NULL)
+            freelist_object->freelist[appropriate_level] = block_to_be_freed;
+        else {
+            ((item *)block_to_be_freed)->next = freelist_object->freelist[appropriate_level];
+            freelist_object->freelist[appropriate_level] = block_to_be_freed;
+        }
+
+        /*list_del(&buddy->link);
         if (buddy < block_to_be_freed)
-            block_to_be_freed = buddy;
+            block_to_be_freed = buddy;*/
         ++level;
-        block_to_be_freed->level = level;
+        /*block_to_be_freed->level = level;*/
     }
 
     // No buddy found, so add the block to be freed to its corresponding free list level.
-    block_to_be_freed->level = level;
 
-    list_add(&block_to_be_freed->link, &freelist_object->freelist[level];);
+    /*if(freelist_object->freelist[level] == NULL)
+        freelist_object->freelist[level] = block_to_be_freed;
 
-}*/
+     Else get the first one, link it to this block and make the block the first in that level 
+    else {
+        ((item *)available_block)->next = freelist_object->freelist[level];
+        freelist_object->freelist[level] = block_to_be_freed;
+    }*/
+}
 
 
 
@@ -238,6 +265,9 @@ int main(int argc, char const *argv[]) {
     print_the_memory_layout();
     printf("\n");
     pointer_three = buddy_alloc(13);
+    print_the_memory_layout();
+    printf("\n");
+    buddy_free(pointer_three);
     print_the_memory_layout();
     printf("\n");
     /*// Testing the free list
