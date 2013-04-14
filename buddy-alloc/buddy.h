@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
@@ -34,3 +35,6 @@ void buddy_free(void *ptr);
 /* 	Invoked by buddy_free or buddy_alloc. Combines blocks of memory 
 to a bigger chunk.*/
 void* buddy_merge(void *ptr);
+
+/* prints the memory layout at any given point of time */
+void print_the_memory_layout();
