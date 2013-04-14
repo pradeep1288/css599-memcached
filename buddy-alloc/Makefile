@@ -1,13 +1,16 @@
 CC=gcc
 CFLAGS=-Wall -O3 -c -g -O0 -fno-inline
 
-all: buddy-alloc
+all: buddy-test
 
-buddy-alloc: buddy.o
-	$(CC) buddy.o -o buddy-alloc
+buddy-test: buddy.o test.o
+	$(CC) buddy.o test.o -o buddy-test -lm
 
 buddy.o: buddy.c
 	$(CC) $(CFLAGS) buddy.c 
+
+test.o: test.c
+	$(CC) $(CFLAGS) test.c
 
 clean:	
 	/bin/rm -Rf *.o a.out* buddy-alloc
