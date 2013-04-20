@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
+#define DEBUG 0
 
 static void *mem_base;
 static freelist_t *freelist_object;
@@ -57,7 +58,7 @@ void* find_buddy(void* ptr)
 
     int level = ((item*)ptr)->level;
 
-    printf("Freeing request for a block of level %d\n", level);
+    d_printf("Freeing request for a block of level %d\n", level);
     /* Fixup block address to be zero-relative */
     block = ptr - mem_base;
 
@@ -113,10 +114,11 @@ void buddy_init() {
 
 void* buddy_exact_alloc(void* ptr, size_t size) {
 
-    printf("Internal fragmentation detected : \n");
-    int current_level = (item*)ptr->level;
+    d_printf("Internal fragmentation detected : \n");
+    int current_level = ((item*)ptr)->level;
     int extra_allocated = (1UL << current_level) - size;
-    
+    d_printf("Extra allocated : %d\n", extra_allocated);
+    return ptr;
 }
 
 
@@ -130,7 +132,7 @@ void* buddy_alloc(size_t size) {
     void *list = NULL;
     item *new_head;
 
-    printf("Allocation request for %d\n", (int)size);
+    d_printf("Allocation request for %d\n", (int)size);
 
     //Calculate the power of 2 big enough to hold 'size'
     next_power_of_2 = get_next_power_of_2(size);
@@ -164,7 +166,7 @@ void* buddy_alloc(size_t size) {
             printf("Memory full. Try evicting\n");
             return NULL;
         }
-        printf("Big enough block %p found at level %d\n", available_block, j);
+        d_printf("Big enough block %p found at level %d\n", available_block, j);
 
         /* Trim if a higher order block than necessary was allocated */
         allocated_block = available_block;
@@ -172,13 +174,13 @@ void* buddy_alloc(size_t size) {
         while (j > calculated_level) {
 
             /* Perform the splitting iteratively */
-            printf("Spitting %p at level %d ", available_block, j);
+            d_printf("Spitting %p at level %d ", available_block, j);
             --j;
             
             available_block = (item *)((unsigned long)available_block + (1UL << j));
             ((item *)available_block)->level = j;
             ((item *)allocated_block)->level = j;
-            printf("into %p and %p\n", allocated_block, available_block);
+            d_printf("into %p and %p\n", allocated_block, available_block);
 
             /* Check if there is already free block of that level */
             /* If no, make this the first one */
@@ -193,12 +195,12 @@ void* buddy_alloc(size_t size) {
             allocated_block = available_block;
         }
 
-        printf("Block %p alloted out of the level %d\n", allocated_block, j);
+        d_printf("Block %p alloted out of the level %d\n", allocated_block, j);
 
         // Return the object if it does not cause internal fragmentatation
         if((1UL << calculated_level) - size == 0)
         {
-            printf("No internal fragmentatation involved with this request size\n");
+            d_printf("No internal fragmentatation involved with this request size\n");
             return allocated_block;
         }
 
@@ -227,10 +229,10 @@ void buddy_free(void *ptr) {
 
         if(buddy == NULL) {
             // Not sure if this check has to be in place. We will always find a buddy, free or not. Right?
-            printf("No buddy found\n");
+            d_printf("No buddy found\n");
             break;
         }
-        printf("Buddy %p found\n", buddy);
+        d_printf("Buddy %p found\n", buddy);
 
         // Check if it is in the free list already. If yes, merge them.
         // TO-DO
