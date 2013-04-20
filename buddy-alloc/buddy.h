@@ -25,9 +25,13 @@ typedef struct _stritem {
 
 void buddy_init();
 
-/* 	As per the request size, find the chunk of memory and allocate. Update 
-	the free lists accordingly.*/
+/* 	As per the request size, find the chunk of memory (next power of 2) 
+	and allocate. Update the free lists accordingly.*/
 void* buddy_alloc(size_t size);
+
+/* 	As per the request size, allocate the exact amount of memory. Return 
+	the extra memory to the corresponding free list levels. */
+void* buddy_exact_alloc(void* ptr, size_t size);
 
 /* 	Frees the block of memory. Update the free lists accordingly.*/
 void buddy_free(void *ptr);

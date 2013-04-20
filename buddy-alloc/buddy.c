@@ -111,6 +111,15 @@ void buddy_init() {
 }
 
 
+void* buddy_exact_alloc(void* ptr, size_t size) {
+
+    printf("Internal fragmentation detected : \n");
+    int current_level = (item*)ptr->level;
+    int extra_allocated = (1UL << current_level) - size;
+    
+}
+
+
 void* buddy_alloc(size_t size) {
     
     void* allocated_block = NULL;                  // The object to return
@@ -185,8 +194,16 @@ void* buddy_alloc(size_t size) {
         }
 
         printf("Block %p alloted out of the level %d\n", allocated_block, j);
-        // Return the object
-        return allocated_block;
+
+        // Return the object if it does not cause internal fragmentatation
+        if((1UL << calculated_level) - size == 0)
+        {
+            printf("No internal fragmentatation involved with this request size\n");
+            return allocated_block;
+        }
+
+        //else invoke the buddy_exact_alloc method
+        return buddy_exact_alloc(allocated_block, size);
     }
 
     return NULL;
