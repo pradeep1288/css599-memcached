@@ -48,3 +48,5 @@ void print_the_memory_layout();
 /* returns the next power of two for a given size */
 int get_next_power_of_2(int size);
 
+/* takes size and returns if its a power of two or not. returns 1 if its a power of two and zero otherwise */
+int is_power_of_2(int size);

@@ -61,6 +61,12 @@ int get_next_power_of_2(int size) {
     return size + 1;
 }
 
+/* takes size and returns if its a power of two or not. returns 1 if its a power of two and zero otherwise */
+int is_power_of_2(int size)
+{
+    return (size & (size - 1))? 0 : 1;
+}
+
 /*
     Takes in a memory address (item actually) and finds 
     its buddy of the same level
