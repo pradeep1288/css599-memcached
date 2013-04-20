@@ -17,7 +17,8 @@ typedef struct {
 typedef struct _stritem {
     struct _stritem *next;
     int             nbytes;     /* size of data */
-    uint8_t         level;		/* which freelist level we're in */
+    /*uint8_t         level;		 which freelist level we're in */
+    size_t			size;
 	void *data;
 } item;
 
