@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
-#define DEBUG 0
+#define DEBUG 1
 
 static void *mem_base;
 static freelist_t *freelist_object;
@@ -53,12 +53,12 @@ int get_next_power_of_2(int size) {
 
 void* find_buddy(void* ptr)
 {
-    /*void *buddy, *block;*/
     unsigned long buddy, block;
 
     int level = ((item*)ptr)->level;
 
     d_printf("Freeing request for a block of level %d\n", level);
+
     /* Fixup block address to be zero-relative */
     block = ptr - mem_base;
 
@@ -69,7 +69,13 @@ void* find_buddy(void* ptr)
     return (void *)(buddy + mem_base);
 }
 
-/* Buddy allocation functions */
+/*  Buddy allocation functions */
+
+/*  
+    Initialize the freelist object and the array. 
+    The arrays' top most index (levels) should point to the 
+    entire chunk of memory
+*/
 
 void buddy_init() {
 
@@ -89,10 +95,6 @@ void buddy_init() {
         exit(1);
     }
 
-    // Initialize the freelist object and the array. 
-    // The arrays' top most index (levels) should point to the 
-    // entire chunk of memory
-
     // Allocate memory for freelist_t struct
     freelist_object = (freelist_t *) malloc (sizeof(freelist_t));
 
@@ -111,13 +113,63 @@ void buddy_init() {
     
 }
 
+/*  
+    If the size requested is less than it's next power of 2 we end up in
+    internal fragmentation. This method fragments the difference in the 
+    requested size and next power of 2 in chunks of powers of 2 and adds 
+    them to the appropriate free list levels
+*/
 
 void* buddy_exact_alloc(void* ptr, size_t size) {
 
     d_printf("Internal fragmentation detected : \n");
+    int previous_power_of_two, level;
     int current_level = ((item*)ptr)->level;
     int extra_allocated = (1UL << current_level) - size;
+    void* block_to_be_freed;
+    void* current_block = ptr;
     d_printf("Extra allocated : %d\n", extra_allocated);
+
+    previous_power_of_two = (get_next_power_of_2(extra_allocated) + 1 ) >> 1UL;
+    while(previous_power_of_two) {
+        
+        level = get_level(previous_power_of_two);
+        block_to_be_freed = (item *)((unsigned long)current_block + (1UL << level));
+        ((item *)current_block)->level = level;
+        
+        /* Check if there is already free block of that level */
+        /* If no, make this the first one */
+        if(freelist_object->freelist[level] == NULL)
+            freelist_object->freelist[level] = block_to_be_freed;
+
+        /* Else get the first one, link it to this block and make the block the first in that level */
+        else {
+            ((item *)block_to_be_freed)->next = freelist_object->freelist[level];
+            freelist_object->freelist[level] = block_to_be_freed;
+        }
+
+        d_printf("Freed and added back, size %d \n", previous_power_of_two);
+
+        current_block = block_to_be_freed;
+        extra_allocated = extra_allocated - previous_power_of_two;
+        previous_power_of_two = (get_next_power_of_2(extra_allocated) + 1 ) >> 1UL;
+    }
+
+    level = get_level(previous_power_of_two);
+
+    // Do the same for last block (level 0, size 1) if present
+    if(extra_allocated) {
+        if(freelist_object->freelist[level] == NULL)
+            freelist_object->freelist[level] = block_to_be_freed;
+
+        /* Else get the first one, link it to this block and make the block the first in that level */
+        else {
+            ((item *)block_to_be_freed)->next = freelist_object->freelist[level];
+            freelist_object->freelist[level] = block_to_be_freed;
+        }
+        d_printf("Freed and added back, size %d \n", extra_allocated);
+    }
+
     return ptr;
 }
 

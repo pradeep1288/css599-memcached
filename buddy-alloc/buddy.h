@@ -1,12 +1,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #define d_printf if(DEBUG) printf
+#define MAX_LEVELS 13
 
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
-
-#define MAX_LEVELS 13
 
 typedef struct {
 	int max_level;
