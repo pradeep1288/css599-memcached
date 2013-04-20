@@ -334,51 +334,5 @@ void* buddy_alloc(size_t size) {
 void buddy_free(void *ptr) {
 
     
-    int level, size, appropriate_level;
-    item* block_to_be_freed = (item *)ptr;
-
-    size = block_to_be_freed->size;
-
-    while (level < freelist_object->max_level) {
-
-        // Find the address of the buddy corresponding to this object to be freed
-        item* buddy = find_buddy(block_to_be_freed);
-
-        if(buddy == NULL) {
-            // Not sure if this check has to be in place. We will always find a buddy, free or not. Right?
-            d_printf("No buddy found\n");
-            break;
-        }
-        d_printf("Buddy %p found\n", buddy);
-
-        // Check if it is in the free list already. If yes, merge them.
-        // TO-DO
-
-        // Else add the block to be freed in the appropriate level in the freelist.
-        appropriate_level = ((item *)block_to_be_freed)->size;
-
-        if(freelist_object->freelist[appropriate_level] == NULL)
-            freelist_object->freelist[appropriate_level] = block_to_be_freed;
-        else {
-            ((item *)block_to_be_freed)->next = freelist_object->freelist[appropriate_level];
-            freelist_object->freelist[appropriate_level] = block_to_be_freed;
-        }
-
-        /*list_del(&buddy->link);
-        if (buddy < block_to_be_freed)
-            block_to_be_freed = buddy;*/
-        ++level;
-        /*block_to_be_freed->level = level;*/
-    }
-
-    // No buddy found, so add the block to be freed to its corresponding free list level.
-
-    /*if(freelist_object->freelist[level] == NULL)
-        freelist_object->freelist[level] = block_to_be_freed;
-
-     Else get the first one, link it to this block and make the block the first in that level 
-    else {
-        ((item *)available_block)->next = freelist_object->freelist[level];
-        freelist_object->freelist[level] = block_to_be_freed;
-    }*/
+    
 }
