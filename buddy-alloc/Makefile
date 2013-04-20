@@ -13,4 +13,4 @@ test.o: test.c
 	$(CC) $(CFLAGS) test.c
 
 clean:	
-	/bin/rm -Rf *.o a.out* buddy-alloc
+	/bin/rm -Rf *.o a.out* buddy-test
