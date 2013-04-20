@@ -103,6 +103,8 @@ void buddy_init() {
     // Hard code the maximum block of memory for now
     mem_base = malloc(mem_base_size);
 
+    ((item *)mem_base)->size = mem_base_size;
+
     // Iitialize the entire chunk with zeros.
     if (mem_base != NULL)
         memset(mem_base, 0, sizeof(mem_base));
@@ -137,16 +139,19 @@ void buddy_init() {
     them to the appropriate free list levels
 */
 
-void* buddy_exact_alloc(void* ptr, size_t size) {
+void* buddy_exact_alloc(void** ptr, size_t size) {
 
     d_printf("Internal fragmentation detected : \n");
     int previous_power_of_two_level, block_size, level;
-    int current_size = ((item*)ptr)->size;
+    void* actual_pointer = *ptr;
+    int current_size = ((item*)actual_pointer)->size;
     int current_level = get_level(current_size);
+    d_printf("current_level : %d\n", current_level);
+    d_printf("current_size : %d\n", current_size);
     int extra_allocated = (1UL << current_level) - size;
     d_printf("extra_allocated : %d\n", extra_allocated);
     void* new_current_block;
-    void* current_block = ptr;
+    void* current_block = actual_pointer;
 
     // Check if the extra allocated is a power of 2. In that case, we can directly
     // add it to the appropriate level of freelist
@@ -276,7 +281,10 @@ void* buddy_alloc(size_t size) {
         while (j > calculated_level) {
 
             /* Perform the splitting iteratively */
-            d_printf("Spitting %p at level %d ", available_block, j);
+            // , (int)(((item *)allocated_block)->size)
+            d_printf("%d\n", (int)(((item *)allocated_block)->size));
+            d_printf("Splitting %d ", available_block);
+            d_printf("at level %d ", j);
             --j;
             
             available_block = (item *)((unsigned long)available_block + (1UL << j));
@@ -307,7 +315,8 @@ void* buddy_alloc(size_t size) {
         }
 
         //else invoke the buddy_exact_alloc method
-        return buddy_exact_alloc(allocated_block, size);
+        // return buddy_exact_alloc(allocated_block, size);
+        return allocated_block;
     }
 
     return NULL;
