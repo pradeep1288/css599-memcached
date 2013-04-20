@@ -44,3 +44,7 @@ void* buddy_merge(void *ptr);
 
 /* prints the memory layout at any given point of time */
 void print_the_memory_layout();
+
+/* returns the next power of two for a given size */
+int get_next_power_of_2(int size);
+
