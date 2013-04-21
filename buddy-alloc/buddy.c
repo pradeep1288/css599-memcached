@@ -324,7 +324,6 @@ void* buddy_alloc(size_t size) {
         // return buddy_exact_alloc(allocated_block, size);
         return allocated_block;
     }
-
     return NULL;
 }
 
@@ -333,6 +332,19 @@ void* buddy_alloc(size_t size) {
 
 void buddy_free(void *ptr) {
 
-    
-    
+  item *item_ptr = (item*)ptr;
+  int level = 0;
+  printf("item to be freed is: %p\n",item_ptr);
+  printf("item to be freed of size %ld\n", item_ptr->size);
+  if (is_power_of_2(2))
+  {
+     level = get_level(item_ptr->size);
+     item_ptr->next = freelist_object->freelist[level];
+     freelist_object->freelist[level] = item_ptr;
+     printf("freed block of address %p", item_ptr);
+  }  
+
+  else {
+    //handle if it is not a power of two
+  }
 }

@@ -3,11 +3,12 @@
 
 int main(int argc, char const *argv[]) {
 
-    void *pointer_one;
+    item *pointer_one;
     buddy_init();
 
-    pointer_one = buddy_alloc(9);
-    print_the_memory_layout();
+    pointer_one = buddy_alloc(8);
+    //print_the_memory_layout();
+    buddy_free(pointer_one);
     printf("\n");
 
     return 0;
