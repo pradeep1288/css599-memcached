@@ -148,7 +148,7 @@ void buddy_init() {
 void* buddy_exact_alloc(void** ptr, size_t size) {
 
     d_printf("Internal fragmentation detected : \n");
-    int previous_power_of_two_level, block_size, level;
+    int previous_power_of_two_level, block_size, level = 0;
     void* actual_pointer = *ptr;
     int current_size = ((item*)actual_pointer)->size;
     int current_level = get_level(current_size);
@@ -289,7 +289,7 @@ void* buddy_alloc(size_t size) {
             /* Perform the splitting iteratively */
             // , (int)(((item *)allocated_block)->size)
             d_printf("%d\n", (int)(((item *)allocated_block)->size));
-            d_printf("Splitting %d ", available_block);
+            d_printf("Splitting %p ", available_block);
             d_printf("at level %d ", j);
             --j;
             
