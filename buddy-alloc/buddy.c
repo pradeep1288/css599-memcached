@@ -148,95 +148,29 @@ void buddy_init() {
 void* buddy_exact_alloc(void** ptr, size_t size) {
 
     d_printf("Internal fragmentation detected : \n");
-    int previous_power_of_two_level, block_size, level = 0;
     void* actual_pointer = *ptr;
+    
     int current_size = ((item*)actual_pointer)->size;
     int current_level = get_level(current_size);
+    int previous_power_of_two_level, block_size, level;
+    
+    
+    
     d_printf("current_level : %d\n", current_level);
     d_printf("current_size : %d\n", current_size);
+    
     int extra_allocated = (1UL << current_level) - size;
     d_printf("extra_allocated : %d\n", extra_allocated);
-    void* new_current_block;
-    void* current_block = actual_pointer;
 
-    // Check if the extra allocated is a power of 2. In that case, we can directly
-    // add it to the appropriate level of freelist
-    if(extra_allocated == get_next_power_of_2(extra_allocated)) {
-
-        level = get_level(extra_allocated);
-        d_printf("puh level : %d\n", level);
-        new_current_block = (item *)((unsigned long)current_block + (1UL << level));
-        ((item *)current_block)->size = extra_allocated;
-
-        /* Check if there is already free block of that level */
-        /* If no, make this the first one */
-        if(freelist_object->freelist[level] == NULL)
-            freelist_object->freelist[level] = current_block;
-
-        /* Else get the first one, link it to this block and make the block the first in that level */
-        else {
-            ((item *)current_block)->next = freelist_object->freelist[level];
-            freelist_object->freelist[level] = current_block;
-        }
-        return new_current_block;        
-    }
-
-    // Else we decompose the extra allocated in powers of 2
-    while(extra_allocated) {
-
-        if(extra_allocated == get_next_power_of_2(extra_allocated)) {
-
-            d_printf("extra_allocated : %d\n", extra_allocated);
-            level = get_level(extra_allocated);
-            d_printf("huh level : %d\n", level);
-            new_current_block = (item *)((unsigned long)current_block + (1UL << level));
-            ((item *)current_block)->size = extra_allocated;
-
-            /* Check if there is already free block of that level */
-            /* If no, make this the first one */
-            if(freelist_object->freelist[level] == NULL)
-                freelist_object->freelist[level] = current_block;
-
-            /* Else get the first one, link it to this block and make the block the first in that level */
-            else {
-                ((item *)current_block)->next = freelist_object->freelist[level];
-                freelist_object->freelist[level] = current_block;
-            }
-            return new_current_block;        
-        }
-
-        previous_power_of_two_level = get_level(get_next_power_of_2(extra_allocated));
-        --previous_power_of_two_level;
-        d_printf("previous_power_of_two_level: %d\n", previous_power_of_two_level);
-        block_size = 1UL << previous_power_of_two_level;
-
-        new_current_block = (item *)((unsigned long)current_block + block_size);
-        ((item *)current_block)->size = block_size;
-
-        /* Check if there is already free block of that level */
-        /* If no, make this the first one */
-        if(freelist_object->freelist[level] == NULL)
-            freelist_object->freelist[level] = current_block;
-
-        /* Else get the first one, link it to this block and make the block the first in that level */
-        else {
-            ((item *)current_block)->next = freelist_object->freelist[level];
-            freelist_object->freelist[level] = current_block;
-        }
-
-        current_block = new_current_block;
-        extra_allocated -= block_size;
-        d_printf("extra_allocated : %d\n", extra_allocated);
-    }
-
-    return new_current_block;
+    return actual_pointer;
 }
 
 
 void* buddy_alloc(size_t size) {
     
     void* allocated_block = NULL;                  // The object to return
-    void* available_block;
+    item* allocated_block_item = NULL;
+    item* available_block_item = NULL;
     int next_power_of_2 = 0;
     int calculated_level = 0;
     int j = 0;
@@ -265,64 +199,64 @@ void* buddy_alloc(size_t size) {
         if (list == NULL)
             continue;
 
-        available_block = (void *)list;
+        available_block_item = (item *)list;
 
         /* Detach it from it's current position in the free list array */
-        new_head = ((item *)list)->next;
+        new_head = available_block_item->next;
 
         if(new_head == NULL)
             freelist_object->freelist[j] = NULL;
         else
             freelist_object->freelist[j] = new_head;
 
-        if(available_block == NULL) {
+        if(available_block_item == NULL) {
             printf("Memory full. Try evicting\n");
             return NULL;
         }
-        d_printf("Big enough block %p found at level %d\n", available_block, j);
+        d_printf("Big enough block %p found at level %d\n", available_block_item, j);
 
         /* Trim if a higher order block than necessary was allocated */
-        allocated_block = available_block;
+        allocated_block_item = available_block_item;
 
         while (j > calculated_level) {
 
             /* Perform the splitting iteratively */
             // , (int)(((item *)allocated_block)->size)
-            d_printf("%d\n", (int)(((item *)allocated_block)->size));
-            d_printf("Splitting %p ", available_block);
-            d_printf("at level %d ", j);
+            d_printf("Size : %ld\n", allocated_block_item->size);
+            d_printf("Splitting %p at level %d ", available_block_item, j);
             --j;
             
-            available_block = (item *)((unsigned long)available_block + (1UL << j));
-            ((item *)available_block)->size = (1UL << j);
-            ((item *)allocated_block)->size = (1UL << j);
-            d_printf("into %p and %p\n", allocated_block, available_block);
+            available_block_item = available_block_item + (1UL << j);
+            available_block_item->size = (1UL << j);
+            allocated_block_item->size = (1UL << j);
+            d_printf("into %p and %p\n", allocated_block_item, available_block_item);
 
             /* Check if there is already free block of that level */
             /* If no, make this the first one */
             if(freelist_object->freelist[j] == NULL)
-                freelist_object->freelist[j] = allocated_block;
+                freelist_object->freelist[j] = allocated_block_item;
 
             /* Else get the first one, link it to this block and make the block the first in that level */
             else {
-                ((item *)available_block)->next = freelist_object->freelist[j];
-                freelist_object->freelist[j] = allocated_block;
+                available_block_item->next = freelist_object->freelist[j];
+                freelist_object->freelist[j] = allocated_block_item;
             }
-            allocated_block = available_block;
+            allocated_block_item = available_block_item;
         }
 
-        d_printf("Block %p alloted out of the level %d\n", allocated_block, j);
+        d_printf("Block %p alloted out of the level %d\n", allocated_block_item, j);
 
         // Return the object if it does not cause internal fragmentatation
         if((1UL << calculated_level) - size == 0)
         {
             d_printf("No internal fragmentatation involved with this request size\n");
-            return allocated_block;
+            allocated_block = (void*)allocated_block_item;
+            return &allocated_block;
         }
 
         //else invoke the buddy_exact_alloc method
-        // return buddy_exact_alloc(allocated_block, size);
-        return allocated_block;
+        allocated_block = (void*)allocated_block_item;
+        return buddy_exact_alloc(&allocated_block, size);
     }
     return NULL;
 }
