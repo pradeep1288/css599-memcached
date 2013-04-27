@@ -36,7 +36,7 @@ void* buddy_alloc(size_t size);
 void* buddy_exact_alloc(void** ptr, size_t size);
 
 /* 	Frees the block of memory. Update the free lists accordingly.*/
-void buddy_free(void *ptr);
+void buddy_free(void **ptr);
 
 /* 	Invoked by buddy_free or buddy_alloc. Combines blocks of memory 
 to a bigger chunk.*/
