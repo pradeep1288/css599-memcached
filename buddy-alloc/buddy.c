@@ -216,6 +216,7 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
                 current_block_item->next = (item*)freelist_object->freelist[level];
                 freelist_object->freelist[level] = (void*)current_block_item;
             }
+            new_current_block_item->in_use = true;
             return (void*)new_current_block_item;        
         }
 
@@ -336,6 +337,7 @@ void* buddy_alloc(size_t size) {
         {
             d_printf("No internal fragmentatation involved with this request size\n");
             allocated_block = (void*)allocated_block_item;
+            allocated_block->in_use = true;
             return allocated_block;
         }
 
