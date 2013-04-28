@@ -336,7 +336,7 @@ void* buddy_alloc(size_t size) {
         {
             d_printf("No internal fragmentatation involved with this request size\n");
             allocated_block = (void*)allocated_block_item;
-            return &allocated_block;
+            return allocated_block;
         }
 
         //else invoke the buddy_exact_alloc method
