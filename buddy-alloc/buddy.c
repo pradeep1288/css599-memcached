@@ -366,6 +366,7 @@ void buddy_free(void **ptr) {
     {
         level = get_level(item_ptr->size);
         item_ptr->next = (item*)freelist_object->freelist[level];
+        item_ptr->in_use = false;
         freelist_object->freelist[level] = (void*)item_ptr;
         printf("Freed block at address : %p\n", item_ptr);
     }  
@@ -374,6 +375,7 @@ void buddy_free(void **ptr) {
         //if the allocated block is not a power of two.
         current_block_size = item_ptr->size;
         current_block = item_ptr;
+        current_block->in_use = false;
         //Split them into powers of two and add to appropriate free lists index
         while (current_block_size){
             if (current_block_size == get_next_power_of_2(current_block->size))
@@ -381,6 +383,7 @@ void buddy_free(void **ptr) {
                 //do if remaining chunk is of power of two.
                 level = get_level(current_block->size);
                 current_block->next = (item*)freelist_object->freelist[level];
+                current_block->in_use = false;
                 freelist_object->freelist[level] = (void*)current_block;
                 break;
             }
@@ -391,6 +394,7 @@ void buddy_free(void **ptr) {
 
             new_block_to_be_added->size = block_size;
             new_block_to_be_added->next = (item*)freelist_object->freelist[previous_power_of_two_level];
+            new_block_to_be_added->in_use = false;
             freelist_object->freelist[previous_power_of_two_level] = (void*)new_block_to_be_added;
             current_block = current_block + block_size;
             current_block->size = current_block_size - block_size;
