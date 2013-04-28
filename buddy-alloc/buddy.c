@@ -336,8 +336,8 @@ void* buddy_alloc(size_t size) {
         if((1UL << calculated_level) - size == 0)
         {
             d_printf("No internal fragmentatation involved with this request size\n");
+            allocated_block_item->in_use = true;
             allocated_block = (void*)allocated_block_item;
-            allocated_block->in_use = true;
             return allocated_block;
         }
 
