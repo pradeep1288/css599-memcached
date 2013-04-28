@@ -31,9 +31,10 @@ int main(int argc, char const *argv[]) {
     print_the_memory_layout();
     //buddy_free(&pointer_one);
     //test_buddy();
-    buddy_free(&pointer6);
-    buddy_free(&pointer8);
-    buddy_free(&pointer11);
+    //buddy_free(&pointer6);
+    //buddy_free(&pointer8);
+    //buddy_free(&pointer11);
+    buddy_free(&pointer_four);
     print_the_memory_layout();
 
     return 0;
