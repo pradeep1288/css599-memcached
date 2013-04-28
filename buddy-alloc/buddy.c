@@ -369,8 +369,10 @@ void buddy_free(void **ptr) {
     }  
 
     else {
+        //if the allocated block is not a power of two.
         current_block_size = item_ptr->size;
         current_block = item_ptr;
+        //Split them into powers of two and add to appropriate free lists index
         while (current_block_size){
             if (current_block_size == get_next_power_of_2(current_block->size))
             {
@@ -378,19 +380,18 @@ void buddy_free(void **ptr) {
                 level = get_level(current_block->size);
                 current_block->next = (item*)freelist_object->freelist[level];
                 freelist_object->freelist[level] = (void*)current_block;
-                current_block_size = current_block_size - block_size;
+                break;
             }
             previous_power_of_two_level = get_level(get_next_power_of_2(current_block_size));
             --previous_power_of_two_level;
             block_size = (1UL << previous_power_of_two_level);
             new_block_to_be_added = current_block;
+
             new_block_to_be_added->size = block_size;
-            current_block_size = block_size;
             new_block_to_be_added->next = (item*)freelist_object->freelist[previous_power_of_two_level];
             freelist_object->freelist[previous_power_of_two_level] = (void*)new_block_to_be_added;
-
             current_block = current_block + block_size;
-            current_block->size = current_block->size - block_size;
+            current_block->size = current_block_size - block_size;
             current_block_size = current_block_size - block_size;
         }
     }
