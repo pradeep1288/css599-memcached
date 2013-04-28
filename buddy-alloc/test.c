@@ -4,7 +4,7 @@
 int main(int argc, char const *argv[]) {
 
     void *pointer_one, *pointer_two, *pointer_three, *pointer_four;
-    void *pointer5, *pointer6, *pointer7, *pointer8, *pointer9, *pointer10;
+    void *pointer5, *pointer6, *pointer7, *pointer8, *pointer9, *pointer10, *pointer11;
     buddy_init();
 
     pointer_one = buddy_alloc(33);
@@ -27,8 +27,13 @@ int main(int argc, char const *argv[]) {
     printf("Allocated block : %p of size : %ld\n", pointer9, ((item*)pointer9)->size);
     pointer10 = buddy_alloc(4096);
     printf("Allocated block : %p of size : %ld\n", pointer10, ((item*)pointer10)->size);
+    pointer11 = buddy_alloc(8);
+    print_the_memory_layout();
     //buddy_free(&pointer_one);
-    test_buddy();
+    //test_buddy();
+    buddy_free(&pointer6);
+    buddy_free(&pointer8);
+    buddy_free(&pointer11);
     print_the_memory_layout();
 
     return 0;
