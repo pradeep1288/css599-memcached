@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
-#define DEBUG 1
+#define DEBUG 0
 
 static void *mem_base;
 static freelist_t *freelist_object;
@@ -351,12 +351,12 @@ void buddy_free(void **ptr) {
     int level = 0;
     printf("item to be freed is: %p\n",item_ptr);
     printf("item to be freed of size %ld\n", item_ptr->size);
-    if (is_power_of_2(2))
+    if (is_power_of_2(item_ptr->size))
     {
         level = get_level(item_ptr->size);
-        item_ptr->next = freelist_object->freelist[level];
-        freelist_object->freelist[level] = item_ptr;
-        printf("Freed block at address : %p", item_ptr);
+        item_ptr->next = (item*)freelist_object->freelist[level];
+        freelist_object->freelist[level] = (void*)item_ptr;
+        printf("Freed block at address : %p\n", item_ptr);
     }  
 
     else {
