@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
-#define DEBUG 0
+#define DEBUG 1
 
 static void *mem_base;
 static freelist_t *freelist_object;
@@ -149,20 +149,100 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
 
     d_printf("Internal fragmentation detected : \n");
     void* actual_pointer = *ptr;
+
+    item* current_block_item = (item*)actual_pointer;
+    item* new_current_block_item;
     
-    int current_size = ((item*)actual_pointer)->size;
+    int current_size = current_block_item->size;
     int current_level = get_level(current_size);
     int previous_power_of_two_level, block_size, level;
-    
-    
-    
+      
     d_printf("current_level : %d\n", current_level);
     d_printf("current_size : %d\n", current_size);
     
     int extra_allocated = (1UL << current_level) - size;
-    d_printf("extra_allocated : %d\n", extra_allocated);
+    d_printf("Extra space allocated : %d\n", extra_allocated);
 
-    return actual_pointer;
+    // Check if the extra allocated is a power of 2. In that case, we can directly
+    // add it to the appropriate level of freelist
+    if(extra_allocated == get_next_power_of_2(extra_allocated)) {
+
+        level = get_level(extra_allocated);
+        block_size = 1UL << level;
+        new_current_block_item = current_block_item + (1UL << level);
+        new_current_block_item->size = current_block_item->size - block_size;
+        current_block_item->size = block_size;
+
+        /* Check if there is already free block of that level */
+        /* If no, make this the first one */
+
+        printf("Adding block of size %ld back to the freelist level : %d\n", current_block_item->size, level);
+        if(freelist_object->freelist[level] == NULL)
+            freelist_object->freelist[level] = (void*)current_block_item;
+
+        /* Else get the first one, link it to this block and make the block the first in that level */
+        else {
+            current_block_item->next = (item*)freelist_object->freelist[level];
+            freelist_object->freelist[level] = (void*)current_block_item;
+        }
+        return (void*)new_current_block_item;        
+    }
+
+    // Else we decompose the extra allocated in powers of 2
+    while(extra_allocated) {
+
+        if(extra_allocated == get_next_power_of_2(extra_allocated)) {
+
+            level = get_level(extra_allocated);
+            block_size = 1UL << level;
+            new_current_block_item = (current_block_item + (1UL << level));
+            new_current_block_item->size = current_block_item->size - block_size;
+            current_block_item->size = block_size;
+
+            /* Check if there is already free block of that level */
+            /* If no, make this the first one */
+
+            printf("Adding block of size %ld back to the freelist level : %d\n", current_block_item->size, level);
+            if(freelist_object->freelist[level] == NULL)
+                freelist_object->freelist[level] = (void*)current_block_item;
+
+            /* Else get the first one, link it to this block and make the block the first in that level */
+            else {
+                current_block_item->next = (item*)freelist_object->freelist[level];
+                freelist_object->freelist[level] = (void*)current_block_item;
+            }
+            return (void*)new_current_block_item;        
+        }
+
+        /*d_printf("Next power of 2 of extra allocated : %d\n", get_next_power_of_2(extra_allocated));
+        d_printf("Next power of 2's level of extra allocated : %d\n", get_level(get_next_power_of_2(extra_allocated)));*/
+        previous_power_of_two_level = get_level(get_next_power_of_2(extra_allocated));
+        --previous_power_of_two_level;
+        // d_printf("previous_power_of_two_level: %d\n", previous_power_of_two_level);
+        block_size = 1UL << previous_power_of_two_level;
+
+        new_current_block_item = current_block_item + block_size;
+        new_current_block_item->size = current_block_item->size - block_size;
+        current_block_item->size = block_size;
+
+        /* Check if there is already free block of that level */
+        /* If no, make this the first one */
+        printf("Adding block of size %ld back to the freelist level : %d\n", current_block_item->size, previous_power_of_two_level);
+        if(freelist_object->freelist[previous_power_of_two_level] == NULL)
+            freelist_object->freelist[previous_power_of_two_level] = (void*)current_block_item;
+
+        /* Else get the first one, link it to this block and make the block the first in that level */
+        else {
+            current_block_item->next = (item*)freelist_object->freelist[level];
+            freelist_object->freelist[previous_power_of_two_level] = (void*)current_block_item;
+        }
+
+        current_block_item = new_current_block_item;
+        extra_allocated -= block_size;
+        // d_printf("extra_allocated : %d\n", extra_allocated);
+    }
+
+    return actual_pointer; // The control won't reach here
 }
 
 
@@ -177,7 +257,7 @@ void* buddy_alloc(size_t size) {
     void *list = NULL;
     item *new_head;
 
-    d_printf("Allocation request for %d\n", (int)size);
+    printf("Allocation request for %d\n", (int)size);
 
     //Calculate the power of 2 big enough to hold 'size'
     next_power_of_2 = get_next_power_of_2(size);
@@ -222,7 +302,7 @@ void* buddy_alloc(size_t size) {
 
             /* Perform the splitting iteratively */
             // , (int)(((item *)allocated_block)->size)
-            d_printf("Size : %ld\n", allocated_block_item->size);
+            // d_printf("Size : %ld\n", allocated_block_item->size);
             d_printf("Splitting %p at level %d ", available_block_item, j);
             --j;
             
