@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+
 
 #define d_printf if(DEBUG) printf
 #define MAX_LEVELS 13
