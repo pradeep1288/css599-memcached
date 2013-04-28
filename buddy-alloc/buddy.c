@@ -287,7 +287,7 @@ void* buddy_alloc(size_t size) {
         if(new_head == NULL)
             freelist_object->freelist[j] = NULL;
         else
-            freelist_object->freelist[j] = new_head;
+            freelist_object->freelist[j] = (void*)new_head;
 
         if(available_block_item == NULL) {
             printf("Memory full. Try evicting\n");
@@ -314,12 +314,12 @@ void* buddy_alloc(size_t size) {
             /* Check if there is already free block of that level */
             /* If no, make this the first one */
             if(freelist_object->freelist[j] == NULL)
-                freelist_object->freelist[j] = allocated_block_item;
+                freelist_object->freelist[j] = (void*)allocated_block_item;
 
             /* Else get the first one, link it to this block and make the block the first in that level */
             else {
-                available_block_item->next = freelist_object->freelist[j];
-                freelist_object->freelist[j] = allocated_block_item;
+                available_block_item->next = (item*)freelist_object->freelist[j];
+                freelist_object->freelist[j] = (void*)allocated_block_item;
             }
             allocated_block_item = available_block_item;
         }
