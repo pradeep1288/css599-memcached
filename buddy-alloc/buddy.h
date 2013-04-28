@@ -19,6 +19,7 @@ typedef struct _stritem {
     int             nbytes;     /* size of data */
     /*uint8_t         level;		 which freelist level we're in */
     size_t			size;
+    bool in_use;				/* To denote if the block is currently being used or not */
 	void *data;
 } item;
 
