@@ -18,16 +18,17 @@ void print_the_memory_layout() {
     int i=0;
     item* iterator;
     item* level_iterator;
+    printf("Freelist : \n");
     while(i <= freelist_object->max_level) {
         if(freelist_object->freelist[i] == NULL)
-            printf("Free blocks at level - %d : 0\n", i);
+            printf("Level - %2d : [ ]\n", i);
         else {
-            printf("Free blocks at level - %d : ", i);
+            printf("Level - %2d : ", i);
             iterator = ((item *)freelist_object->freelist[i]);
-            printf("[%p] ", iterator);
+            printf("[%p : %ld] ", iterator, iterator->size);
             level_iterator = iterator->next;
             while(level_iterator != NULL) {
-                printf("[%p] ", level_iterator);
+                printf("[%p : %ld] ", level_iterator, level_iterator->size);
                 level_iterator = level_iterator->next;
             }
             printf("\n");
@@ -180,7 +181,7 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
         /* Check if there is already free block of that level */
         /* If no, make this the first one */
 
-        d_printf("Adding block of size %ld back to the freelist level : %d\n", current_block_item->size, level);
+        d_printf("Adding %p of size %ld back to the freelist level : %d\n", current_block_item, current_block_item->size, level);
         if(freelist_object->freelist[level] == NULL)
             freelist_object->freelist[level] = (void*)current_block_item;
 
@@ -206,7 +207,7 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
             /* Check if there is already free block of that level */
             /* If no, make this the first one */
 
-            d_printf("Adding block of size %ld back to the freelist level : %d\n", current_block_item->size, level);
+            d_printf("Adding %p of size %ld back to the freelist level : %d\n", current_block_item, current_block_item->size, level);
             if(freelist_object->freelist[level] == NULL)
                 freelist_object->freelist[level] = (void*)current_block_item;
 
@@ -231,13 +232,13 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
 
         /* Check if there is already free block of that level */
         /* If no, make this the first one */
-        d_printf("Adding block of size %ld back to the freelist level : %d\n", current_block_item->size, previous_power_of_two_level);
+        d_printf("Adding %p of size %ld back to the freelist level : %d\n", current_block_item, current_block_item->size, previous_power_of_two_level);
         if(freelist_object->freelist[previous_power_of_two_level] == NULL)
             freelist_object->freelist[previous_power_of_two_level] = (void*)current_block_item;
 
         /* Else get the first one, link it to this block and make the block the first in that level */
         else {
-            current_block_item->next = (item*)freelist_object->freelist[level];
+            current_block_item->next = (item*)freelist_object->freelist[previous_power_of_two_level];
             freelist_object->freelist[previous_power_of_two_level] = (void*)current_block_item;
         }
 
