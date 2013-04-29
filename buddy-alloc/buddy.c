@@ -147,6 +147,47 @@ void buddy_init() {
 smaller blocks to form a larger block
 */
 
+void* buddy_merge(void **ptr)
+{
+    //first determine from which level you can merge.
+    void *actual_ptr = *ptr;
+    item *item_ptr = (item*)actual_ptr;
+    item *level_iterator = NULL;
+    int level_found = 0;
+    unsigned int total_block_size_in_a_level;
+    size_t requested_size = item_ptr->size;
+    unsigned long previous_level = 0;
+    previous_level = get_level(get_next_power_of_2(requested_size));    
+    --previous_level;
+    while(previous_level)
+    {
+        level_iterator = freelist_object->freelist[previous_level];
+        while(level_iterator != NULL)
+        {
+            total_block_size_in_a_level = total_block_size_in_a_level + level_iterator->size;
+        }
+        if (total_block_size_in_a_level >= requested_size)
+        {
+            //we have found the level from where we have to merge.
+            level_found = 1;
+            break;
+        }
+        //continue looking.
+        previous_level--;
+    }
+    if (level_found)
+    {
+
+
+    }
+    else 
+    {
+        //sorry could not find smaller blocks to merge. Need to evict now.
+        return NULL;
+    }
+    return 0;
+}
+
 
 /*  
     If the size requested is less than it's next power of 2 we end up in
