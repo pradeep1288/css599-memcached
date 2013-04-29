@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buddy.h"
-#define DEBUG 0
+#define DEBUG 1
 
 static void *mem_base;
 static freelist_t *freelist_object;
@@ -340,15 +340,10 @@ void* buddy_alloc(size_t size) {
 
         if(available_block_item == NULL) {
 
-            printf("No blocks found in higher levels of the free list. Exploring the lower levels and checking if something can be merged\n");
-            available_block = (void*)available_block_item;
-            allocated_block_from_merge = buddy_merge(&available_block);
-            if(allocated_block_from_merge == NULL) {
-                printf("Memory full. Try evicting");
-                return NULL;    
-            }
-            return allocated_block_from_merge;
+            printf("Memory full. Try evicting");
+            return NULL;
         }
+
         d_printf("Big enough block %p found at level %d\n", available_block_item, j);
 
         /* Trim if a higher order block than necessary was allocated */
@@ -395,7 +390,15 @@ void* buddy_alloc(size_t size) {
         allocated_block = (void*)allocated_block_item;
         return buddy_exact_alloc(&allocated_block, size);
     }
-    return NULL;
+
+    printf("No blocks found in higher levels of the free list. Exploring the lower levels and checking if something can be merged\n");
+    available_block = (void*)available_block_item;
+    allocated_block_from_merge = buddy_merge(&available_block);
+    if(allocated_block_from_merge == NULL) {
+        printf("Memory full. Try evicting");
+        return NULL;
+    }
+    return allocated_block_from_merge;
 }
 
 
