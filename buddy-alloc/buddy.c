@@ -168,32 +168,6 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
     int extra_allocated = (1UL << current_level) - size;
     d_printf("Extra space allocated : %d\n", extra_allocated);
 
-    // Check if the extra allocated is a power of 2. In that case, we can directly
-    // add it to the appropriate level of freelist
-    /*if(extra_allocated == get_next_power_of_2(extra_allocated)) {
-
-        level = get_level(extra_allocated);
-        block_size = 1UL << level;
-        new_current_block_item = current_block_item + (1UL << level);
-        new_current_block_item->size = current_block_item->size - block_size;
-        current_block_item->size = block_size;
-
-        // Check if there is already free block of that level 
-        // If no, make this the first one 
-
-        d_printf("Adding %p of size %ld back to the freelist level : %d\n", current_block_item, current_block_item->size, level);
-        if(freelist_object->freelist[level] == NULL)
-            freelist_object->freelist[level] = (void*)current_block_item;
-
-        //Else get the first one, link it to this block and make the block the first in that level 
-        else {
-            current_block_item->next = (item*)freelist_object->freelist[level];
-            freelist_object->freelist[level] = (void*)current_block_item;
-        }
-        return (void*)new_current_block_item;        
-    }*/
-
-    // Else we decompose the extra allocated in powers of 2
     while(extra_allocated) {
 
         if(extra_allocated == get_next_power_of_2(extra_allocated)) {
