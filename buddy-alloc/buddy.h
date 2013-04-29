@@ -42,7 +42,7 @@ void buddy_free(void **ptr);
 
 /* 	Invoked by buddy_free or buddy_alloc. Combines blocks of memory 
 to a bigger chunk.*/
-void* buddy_merge(void **ptr);
+void* buddy_merge(size_t size_requested);
 
 /* prints the memory layout at any given point of time */
 void print_the_memory_layout();

@@ -147,15 +147,13 @@ void buddy_init() {
 smaller blocks to form a larger block
 */
 
-void* buddy_merge(void **ptr)
+void* buddy_merge(size_t size_requested)
 {
     //first determine from which level you can merge.
-    void *actual_ptr = *ptr;
-    item *item_ptr = (item*)actual_ptr;
     item *level_iterator = NULL, *freelist_first_block = NULL, *new_block_to_be_formed = NULL;
     int level_found = 0;
     unsigned int total_block_size_in_a_level;
-    size_t requested_size = item_ptr->size;
+    size_t requested_size = size_requested;
     unsigned long previous_level = 0;
     previous_level = get_level(get_next_power_of_2(requested_size));    
     --previous_level;
@@ -165,6 +163,7 @@ void* buddy_merge(void **ptr)
         while(level_iterator != NULL)
         {
             total_block_size_in_a_level = total_block_size_in_a_level + level_iterator->size;
+            level_iterator = level_iterator->next;
         }
         if (total_block_size_in_a_level >= requested_size)
         {
@@ -191,6 +190,7 @@ void* buddy_merge(void **ptr)
             requested_size = requested_size - level_iterator->size;
             level_iterator = level_iterator->next;
         }
+        level_iterator = level_iterator->next;
         new_block_to_be_formed->in_use = true;
         if (level_iterator != NULL)
         {
@@ -393,7 +393,7 @@ void* buddy_alloc(size_t size) {
 
     printf("No blocks found in higher levels of the free list. Exploring the lower levels and checking if something can be merged\n");
     available_block = (void*)available_block_item;
-    allocated_block_from_merge = buddy_merge(&available_block);
+    allocated_block_from_merge = buddy_merge(size);
     if(allocated_block_from_merge == NULL) {
         printf("Memory full. Try evicting");
         return NULL;
