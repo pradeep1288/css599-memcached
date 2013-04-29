@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #define d_printf if(DEBUG) printf
-#define MAX_LEVELS 13
+#define MAX_LEVELS 6
 
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
