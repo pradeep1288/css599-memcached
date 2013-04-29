@@ -298,6 +298,7 @@ void* buddy_alloc(size_t size) {
     void* allocated_block = NULL;                  // The object to return
     void* allocated_block_from_merge = NULL;
     item* allocated_block_item = NULL;
+    void* available_block = NULL; 
     item* available_block_item = NULL;
     int next_power_of_2 = 0;
     int calculated_level = 0;
@@ -340,7 +341,8 @@ void* buddy_alloc(size_t size) {
         if(available_block_item == NULL) {
 
             printf("No blocks found in higher levels of the free list. Exploring the lower levels and checking if something can be merged\n");
-            allocated_block_from_merge = buddy_merge(&available_block_item);
+            available_block = (void*)available_block_item;
+            allocated_block_from_merge = buddy_merge(&available_block);
             if(allocated_block_from_merge == NULL) {
                 printf("Memory full. Try evicting");
                 return NULL;    
