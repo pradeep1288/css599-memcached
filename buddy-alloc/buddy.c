@@ -152,7 +152,7 @@ void* buddy_merge(void **ptr)
     //first determine from which level you can merge.
     void *actual_ptr = *ptr;
     item *item_ptr = (item*)actual_ptr;
-    item *level_iterator = NULL;
+    item *level_iterator = NULL, *freelist_first_block = NULL, *new_block_to_be_formed = NULL;
     int level_found = 0;
     unsigned int total_block_size_in_a_level;
     size_t requested_size = item_ptr->size;
@@ -177,15 +177,36 @@ void* buddy_merge(void **ptr)
     }
     if (level_found)
     {
-
-
+        //we found the level. Now merge them and return the address.
+        freelist_first_block = freelist_object->freelist[previous_level];
+        level_iterator = freelist_object->freelist[previous_level];
+        new_block_to_be_formed = level_iterator;
+        while(requested_size )
+        {
+            //Assumption: Addresses are in increasing order
+            //if not in use, then merge.
+            if (!requested_size)
+                break;
+            new_block_to_be_formed->size += level_iterator->size;
+            requested_size = requested_size - level_iterator->size;
+            level_iterator = level_iterator->next;
+        }
+        new_block_to_be_formed->in_use = true;
+        if (level_iterator != NULL)
+        {
+            freelist_object->freelist[previous_level] = level_iterator;
+        }
+        else
+        {
+            freelist_object->freelist[previous_level] = NULL;
+        }
+        return new_block_to_be_formed;
     }
     else 
     {
         //sorry could not find smaller blocks to merge. Need to evict now.
         return NULL;
     }
-    return 0;
 }
 
 
