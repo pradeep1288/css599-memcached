@@ -200,7 +200,7 @@ void* buddy_merge(void **ptr)
         {
             freelist_object->freelist[previous_level] = NULL;
         }
-        return new_block_to_be_formed;
+        return ((void*)new_block_to_be_formed);
     }
     else 
     {
@@ -296,6 +296,7 @@ void* buddy_exact_alloc(void** ptr, size_t size) {
 void* buddy_alloc(size_t size) {
     
     void* allocated_block = NULL;                  // The object to return
+    void* allocated_block_from_merge = NULL;
     item* allocated_block_item = NULL;
     item* available_block_item = NULL;
     int next_power_of_2 = 0;
@@ -337,8 +338,14 @@ void* buddy_alloc(size_t size) {
             freelist_object->freelist[j] = (void*)new_head;
 
         if(available_block_item == NULL) {
-            printf("Memory full. Try evicting\n");
-            return NULL;
+
+            printf("No blocks found in higher levels of the free list. Exploring the lower levels and checking if something can be merged\n");
+            allocated_block_from_merge = buddy_merge(&available_block_item);
+            if(allocated_block_from_merge == NULL) {
+                printf("Memory full. Try evicting");
+                return NULL;    
+            }
+            return allocated_block_from_merge;
         }
         d_printf("Big enough block %p found at level %d\n", available_block_item, j);
 
