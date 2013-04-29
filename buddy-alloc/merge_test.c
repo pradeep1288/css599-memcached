@@ -14,5 +14,9 @@ int main(int argc, char const *argv[]) {
     print_the_memory_layout();
     pointer_three = buddy_alloc(32);
     print_the_memory_layout();
+    buddy_free(&pointer_three);
+    print_the_memory_layout();
+    buddy_free(&pointer_one);
+    print_the_memory_layout();
     return 0;
 }
