@@ -1,4 +1,5 @@
 junk
 *.o
-buddy-test
-buddy_test
+powers_of_two_test
+random_mix_test
+merge_test
