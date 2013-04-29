@@ -25,4 +25,4 @@ merge_test.o: merge_test.c
 	$(CC) $(CFLAGS) merge_test.c
 
 clean:	
-	/bin/rm -Rf *.o a.out* buddy-test
+	/bin/rm -Rf *.o a.out* powers_of_two_test random_mix_test merge_test
