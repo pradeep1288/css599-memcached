@@ -4,7 +4,7 @@
 int main(int argc, char const *argv[]) {
 
     void *pointer_one, *pointer_two, *pointer_three;
-    buddy_init();
+    buddy_init(6);
     print_the_memory_layout();
     pointer_one = buddy_alloc(32);
     print_the_memory_layout();

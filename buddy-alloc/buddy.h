@@ -5,7 +5,6 @@
 
 #define d_printf if(DEBUG) printf
 
-int MAX_LEVELS = 13;
 /*	Structure to have the array freelist. freelist keeps track of the free 
 	blocks in each of the levels of the buddy allocation system*/
 
@@ -27,7 +26,7 @@ typedef struct _stritem {
 /* 	To initialize the chunk of memory. Takes in the max size parameter.
 	It should init the free list structure. memset.*/
 
-void buddy_init();
+void buddy_init(int max_level);
 
 /* 	As per the request size, find the chunk of memory (next power of 2) 
 	and allocate. Update the free lists accordingly.*/

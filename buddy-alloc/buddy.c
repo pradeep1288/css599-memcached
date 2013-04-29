@@ -7,6 +7,7 @@
 
 static void *mem_base;
 static freelist_t *freelist_object;
+static int MAX_LEVELS = 13;
 
 /* Utility functions */
 
@@ -105,8 +106,9 @@ void* find_buddy(void* ptr)
     entire chunk of memory
 */
 
-void buddy_init() {
+void buddy_init(int max_levels) {
 
+    MAX_LEVELS = max_levels;
     int levels = MAX_LEVELS;
     int mem_base_size = 1 << levels;
     int i;
