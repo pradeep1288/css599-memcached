@@ -398,6 +398,7 @@ void* buddy_alloc(size_t size) {
         printf("Memory full. Try evicting");
         return NULL;
     }
+    d_printf("Block %p alloted out of the level %d\n", (item *)allocated_block_from_merge, get_level(((item *)allocated_block_from_merge)->size));
     return allocated_block_from_merge;
 }
 
