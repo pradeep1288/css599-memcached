@@ -143,6 +143,11 @@ void buddy_init() {
     
 }
 
+/* This merge routine is invoked by the buddy_alloc method when it has to merge 
+smaller blocks to form a larger block
+*/
+
+
 /*  
     If the size requested is less than it's next power of 2 we end up in
     internal fragmentation. This method fragments the difference in the 

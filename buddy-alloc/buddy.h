@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-
 #define d_printf if(DEBUG) printf
 #define MAX_LEVELS 13
 
@@ -43,7 +42,7 @@ void buddy_free(void **ptr);
 
 /* 	Invoked by buddy_free or buddy_alloc. Combines blocks of memory 
 to a bigger chunk.*/
-void* buddy_merge(void *ptr);
+void* buddy_merge(void **ptr);
 
 /* prints the memory layout at any given point of time */
 void print_the_memory_layout();
